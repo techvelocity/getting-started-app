@@ -28,3 +28,4 @@ resources:
   - recommendationservice.yaml
   - redis.yaml
   - shippingservice.yaml
+  - ingress.yaml

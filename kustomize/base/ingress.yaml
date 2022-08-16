@@ -1,0 +1,20 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: frontend-ingress
+spec:
+  rules:
+    - host: "frontend-{velocity.v1.domainSuffix}"
+      http:
+        paths:
+          - backend:
+              service:
+                name: frontend
+                port:
+                  number: 80
+            path: /
+            pathType: Prefix
+  # tls:
+  #   - hosts:
+  #       - "frontend-{velocity.v1.domainSuffix}"
+  #     secretName: wildcard-cert
