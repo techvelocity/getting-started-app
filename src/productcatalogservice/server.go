@@ -19,7 +19,6 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"net"
 	"os"
 	"os/signal"
@@ -72,6 +71,8 @@ func init() {
 	if err != nil {
 		log.Warnf("could not parse product catalog")
 	}
+
+	//log.Info(cat)
 }
 
 func main() {
@@ -233,9 +234,7 @@ func initProfiling(service, version string) {
 type productCatalog struct{}
 
 func readCatalogFile(catalog *pb.ListProductsResponse) error {
-	catalogMutex.Lock()
-	defer catalogMutex.Unlock()
-	catalogJSON, err := ioutil.ReadFile("products.json")
+	catalogJSON, err := GetProducts()
 	if err != nil {
 		log.Fatalf("failed to open product catalog json file: %v", err)
 		return err
@@ -249,12 +248,19 @@ func readCatalogFile(catalog *pb.ListProductsResponse) error {
 }
 
 func parseCatalog() []*pb.Product {
-	if reloadCatalog || len(cat.Products) == 0 {
-		err := readCatalogFile(&cat)
-		if err != nil {
-			return []*pb.Product{}
-		}
+	err := readCatalogFile(&cat)
+	if err != nil {
+		log.Info(err)
+		return []*pb.Product{}
 	}
+	//if reloadCatalog || len(cat.Products) == 0 {
+	//	err := readCatalogFile(&cat)
+	//	if err != nil {
+	//		return []*pb.Product{}
+	//	}
+	//}
+
+	//log.Info(cat.Products)
 	return cat.Products
 }
 
