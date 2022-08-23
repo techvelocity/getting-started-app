@@ -19,6 +19,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"net"
 	"os"
 	"os/signal"
@@ -35,6 +36,7 @@ import (
 	"contrib.go.opencensus.io/exporter/stackdriver"
 	"github.com/golang/protobuf/jsonpb"
 	"github.com/sirupsen/logrus"
+
 	//  "go.opencensus.io/exporter/jaeger"
 	"go.opencensus.io/plugin/ocgrpc"
 	"go.opencensus.io/stats/view"
@@ -234,7 +236,9 @@ func initProfiling(service, version string) {
 type productCatalog struct{}
 
 func readCatalogFile(catalog *pb.ListProductsResponse) error {
-	catalogJSON, err := GetProducts()
+	catalogMutex.Lock()
+	defer catalogMutex.Unlock()
+	catalogJSON, err := ioutil.ReadFile("products.json")
 	if err != nil {
 		log.Fatalf("failed to open product catalog json file: %v", err)
 		return err
@@ -248,19 +252,13 @@ func readCatalogFile(catalog *pb.ListProductsResponse) error {
 }
 
 func parseCatalog() []*pb.Product {
-	err := readCatalogFile(&cat)
-	if err != nil {
-		log.Info(err)
-		return []*pb.Product{}
+	if reloadCatalog || len(cat.Products) == 0 {
+		err := readCatalogFile(&cat)
+		if err != nil {
+			return []*pb.Product{}
+		}
 	}
-	//if reloadCatalog || len(cat.Products) == 0 {
-	//	err := readCatalogFile(&cat)
-	//	if err != nil {
-	//		return []*pb.Product{}
-	//	}
-	//}
 
-	//log.Info(cat.Products)
 	return cat.Products
 }
 
